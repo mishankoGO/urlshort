@@ -3,6 +3,7 @@ package urlshort
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mishankoGO/urlshort/repository"
 	"gopkg.in/yaml.v2"
 	"net/http"
 	"os"
@@ -101,4 +102,15 @@ func buildMap(paths []map[string]string) map[string]string {
 	}
 	fmt.Println(pathsToUrls)
 	return pathsToUrls
+}
+
+func DBHandler(repo *repository.Repo, fallback http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		url := repo.View(r.RequestURI)
+		if url != "" {
+			http.Redirect(w, r, url, http.StatusMovedPermanently)
+		} else {
+			fallback.ServeHTTP(w, r)
+		}
+	}
 }
